@@ -9,7 +9,8 @@ data {
   int C;
   real<lower=2> nu; // lower value 2 to ensure existence of variance
   real<lower=0> sigma;
-} transformed data {
+}
+transformed data {
   real const1 = -(nu+1)/2;
   real const2 = 1/(nu*sigma*sigma);
 }

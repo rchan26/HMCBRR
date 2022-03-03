@@ -5,9 +5,11 @@
 \title{HMC sampler for Robust Regression model}
 \usage{
 hmc_sample_BRR(
-  full_data_count,
+  noise_error = "student_t",
+  y,
+  X,
   C,
-  nu,
+  nu = NULL,
   sigma,
   prior_means,
   prior_variances,
@@ -19,8 +21,12 @@ hmc_sample_BRR(
 )
 }
 \arguments{
-\item{full_data_count}{a matrix or dataframe of the unique data with their
-corresponding counts}
+\item{noise_error}{the distribution for the residuals of the regression model.
+Must be either "student_t" or "laplace" (student_t by default)}
+
+\item{y}{vector of responses}
+
+\item{X}{design matrix}
 
 \item{C}{number of sub-posterior (default to 1)}
 

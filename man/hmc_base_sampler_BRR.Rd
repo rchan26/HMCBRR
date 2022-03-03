@@ -5,22 +5,31 @@
 \title{HMC sampler for base level for robust regression model}
 \usage{
 hmc_base_sampler_BRR(
+  noise_error = "student_t",
   nsamples,
   warmup,
   data_split,
   C,
-  nu,
+  nu = NULL,
   sigma,
   prior_means,
   prior_variances,
   seed = sample.int(.Machine$integer.max, 1),
+  n_cores = parallel::detectCores(),
   output = F
 )
 }
 \arguments{
+\item{noise_error}{the distribution for the residuals of the regression model.
+Must be either "student_t" or "laplace" (student_t by default)}
+
 \item{nsamples}{number of samples per node}
 
 \item{warmup}{number of burn in iterations}
+
+\item{data_split}{list of length C where each item is a list where for c=1,...,C,
+data_split[\link{c}]$y is a vector of responses and data_split[\link{c}]$X
+is the design matrix}
 
 \item{C}{number of sub-posteriors (default to 1)]}
 
@@ -35,12 +44,10 @@ ensure existence of variance}
 
 \item{seed}{seed number for random number generation}
 
+\item{n_cores}{number of cores to use}
+
 \item{output}{boolean value: defaults to T, determines whether or not
 to print output to console}
-
-\item{data}{list of length C where each item is a list where for c=1,...,C,
-data_split[\link{c}]$full_data_count is a matrix or data frame of
-the unique data with their corresponding counts}
 }
 \value{
 samples from the sub-posterior targets for the split data sets

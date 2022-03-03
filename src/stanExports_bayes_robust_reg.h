@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_bayes_robust_reg");
-    reader.add_event(27, 25, "end", "model_bayes_robust_reg");
+    reader.add_event(31, 29, "end", "model_bayes_robust_reg");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -172,11 +172,11 @@ public:
             sigma = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma", sigma, 0);
             // initialize transformed data variables
-            current_statement_begin__ = 13;
+            current_statement_begin__ = 14;
             const1 = double(0);
             stan::math::fill(const1, DUMMY_VAR__);
             stan::math::assign(const1,(-((nu + 1)) / 2));
-            current_statement_begin__ = 14;
+            current_statement_begin__ = 15;
             const2 = double(0);
             stan::math::fill(const2, DUMMY_VAR__);
             stan::math::assign(const2,(1 / ((nu * sigma) * sigma)));
@@ -185,7 +185,7 @@ public:
             // validate, set parameter ranges
             num_params_r__ = 0U;
             param_ranges_i__.clear();
-            current_statement_begin__ = 17;
+            current_statement_begin__ = 18;
             validate_non_negative_index("beta", "(p + 1)", (p + 1));
             num_params_r__ += (p + 1);
         } catch (const std::exception& e) {
@@ -205,7 +205,7 @@ public:
         (void) pos__; // dummy call to supress warning
         std::vector<double> vals_r__;
         std::vector<int> vals_i__;
-        current_statement_begin__ = 17;
+        current_statement_begin__ = 18;
         if (!(context__.contains_r("beta")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable beta missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("beta");
@@ -247,7 +247,7 @@ public:
         try {
             stan::io::reader<local_scalar_t__> in__(params_r__, params_i__);
             // model parameters
-            current_statement_begin__ = 17;
+            current_statement_begin__ = 18;
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> beta;
             (void) beta;  // dummy to suppress unused var warning
             if (jacobian__)
@@ -255,18 +255,25 @@ public:
             else
                 beta = in__.vector_constrain((p + 1));
             // transformed parameters
-            current_statement_begin__ = 19;
+            current_statement_begin__ = 21;
             validate_non_negative_index("diff", "nsamples", nsamples);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> diff(nsamples);
             stan::math::initialize(diff, DUMMY_VAR__);
             stan::math::fill(diff, DUMMY_VAR__);
+            current_statement_begin__ = 22;
+            validate_non_negative_index("diff_sq", "nsamples", nsamples);
+            Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> diff_sq(nsamples);
+            stan::math::initialize(diff_sq, DUMMY_VAR__);
+            stan::math::fill(diff_sq, DUMMY_VAR__);
             // transformed parameters block statements
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 23;
             stan::math::assign(diff, subtract(y, multiply(X, beta)));
+            current_statement_begin__ = 24;
+            stan::math::assign(diff_sq, elt_multiply(diff, diff));
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 19;
+            current_statement_begin__ = 21;
             size_t diff_j_1_max__ = nsamples;
             for (size_t j_1__ = 0; j_1__ < diff_j_1_max__; ++j_1__) {
                 if (stan::math::is_uninitialized(diff(j_1__))) {
@@ -275,11 +282,20 @@ public:
                     stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable diff: ") + msg__.str()), current_statement_begin__, prog_reader__());
                 }
             }
+            current_statement_begin__ = 22;
+            size_t diff_sq_j_1_max__ = nsamples;
+            for (size_t j_1__ = 0; j_1__ < diff_sq_j_1_max__; ++j_1__) {
+                if (stan::math::is_uninitialized(diff_sq(j_1__))) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: diff_sq" << "(" << j_1__ << ")";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable diff_sq: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
             // model body
-            current_statement_begin__ = 23;
+            current_statement_begin__ = 27;
             lp_accum__.add(normal_log(beta, prior_means, stan::math::sqrt(multiply(C, prior_variances))));
-            current_statement_begin__ = 24;
-            lp_accum__.add((const1 * sum(elt_multiply(count, stan::math::log(add(1, multiply(const2, elt_multiply(diff, diff))))))));
+            current_statement_begin__ = 28;
+            lp_accum__.add((const1 * sum(elt_multiply(count, stan::math::log(add(1, multiply(const2, diff_sq)))))));
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -302,12 +318,16 @@ public:
         names__.resize(0);
         names__.push_back("beta");
         names__.push_back("diff");
+        names__.push_back("diff_sq");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
         dimss__.resize(0);
         std::vector<size_t> dims__;
         dims__.resize(0);
         dims__.push_back((p + 1));
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nsamples);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(nsamples);
@@ -340,14 +360,21 @@ public:
         if (!include_tparams__ && !include_gqs__) return;
         try {
             // declare and define transformed parameters
-            current_statement_begin__ = 19;
+            current_statement_begin__ = 21;
             validate_non_negative_index("diff", "nsamples", nsamples);
             Eigen::Matrix<double, Eigen::Dynamic, 1> diff(nsamples);
             stan::math::initialize(diff, DUMMY_VAR__);
             stan::math::fill(diff, DUMMY_VAR__);
+            current_statement_begin__ = 22;
+            validate_non_negative_index("diff_sq", "nsamples", nsamples);
+            Eigen::Matrix<double, Eigen::Dynamic, 1> diff_sq(nsamples);
+            stan::math::initialize(diff_sq, DUMMY_VAR__);
+            stan::math::fill(diff_sq, DUMMY_VAR__);
             // do transformed parameters statements
-            current_statement_begin__ = 20;
+            current_statement_begin__ = 23;
             stan::math::assign(diff, subtract(y, multiply(X, beta)));
+            current_statement_begin__ = 24;
+            stan::math::assign(diff_sq, elt_multiply(diff, diff));
             if (!include_gqs__ && !include_tparams__) return;
             // validate transformed parameters
             const char* function__ = "validate transformed params";
@@ -357,6 +384,10 @@ public:
                 size_t diff_j_1_max__ = nsamples;
                 for (size_t j_1__ = 0; j_1__ < diff_j_1_max__; ++j_1__) {
                     vars__.push_back(diff(j_1__));
+                }
+                size_t diff_sq_j_1_max__ = nsamples;
+                for (size_t j_1__ = 0; j_1__ < diff_sq_j_1_max__; ++j_1__) {
+                    vars__.push_back(diff_sq(j_1__));
                 }
             }
             if (!include_gqs__) return;
@@ -404,6 +435,12 @@ public:
                 param_name_stream__ << "diff" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
+            size_t diff_sq_j_1_max__ = nsamples;
+            for (size_t j_1__ = 0; j_1__ < diff_sq_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "diff_sq" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
         }
         if (!include_gqs__) return;
     }
@@ -423,6 +460,12 @@ public:
             for (size_t j_1__ = 0; j_1__ < diff_j_1_max__; ++j_1__) {
                 param_name_stream__.str(std::string());
                 param_name_stream__ << "diff" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t diff_sq_j_1_max__ = nsamples;
+            for (size_t j_1__ = 0; j_1__ < diff_sq_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "diff_sq" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
